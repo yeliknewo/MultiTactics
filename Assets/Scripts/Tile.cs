@@ -3,13 +3,15 @@ using UnityEngine.Networking;
 using System.Collections;
 
 public class Tile : NetworkBehaviour {
-	private GameObject unit;
 
-	public GameObject GetUnit() {
-		return unit;
+	[SyncVar]
+	private NetworkInstanceId unitNetId = NetworkInstanceId.Invalid;
+
+	public NetworkInstanceId GetUnitNetId() {
+		return this.unitNetId;
 	}
-
-	public void SetUnit(GameObject unit) {
-		this.unit = unit;
+		
+	public void SetUnitNetId(NetworkInstanceId newUnitNetId) {
+		this.unitNetId = newUnitNetId;
 	}
 }

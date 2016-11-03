@@ -14,10 +14,10 @@ public class Player : NetworkBehaviour {
 		base.OnStartLocalPlayer ();
 		if (Object.FindObjectOfType<LevelGen> () == null) {
 			CmdSpawnLevelGen ();
-			CmdSpawnInputManager ();
-			CmdSpawnMainCamera ();
-			CmdSpawnTileDriver ();
 		}
+		CmdSpawnMainCamera ();
+		CmdSpawnInputManager ();
+		CmdSpawnTileDriver ();
 	}
 
 	[Command]

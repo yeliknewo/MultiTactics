@@ -8,14 +8,25 @@ public class LevelGen : NetworkBehaviour {
 
 	public GameObject tileRockPrefab;
 	public GameObject tileGrassPrefab;
+	public GameObject unitAxemanPrefab;
+	public GameObject unitSpearmanPrefab;
 
 	[Command]
 	void CmdGenerateLevel() {
 		for (int y = minY; y < maxY; y++) {
 			for (int x = minX; x < maxX; x++) {
-				GameObject tile = Instantiate<GameObject> (GetTilePrefab (x, y));
-				tile.transform.position = new Vector2 (x, y);
-				NetworkServer.Spawn (tile);
+				GameObject tileObj = Instantiate<GameObject> (GetTilePrefab (x, y));
+				tileObj.transform.position = new Vector2 (x, y);
+				NetworkServer.Spawn (tileObj);
+
+				GameObject unitPrefab = GetUnitPrefab (x, y);
+				if (unitPrefab == null) {
+					continue;
+				}
+				GameObject unitObj = Instantiate<GameObject> (unitPrefab);
+				unitObj.GetComponent<Unit> ().SetTileObj (tileObj);
+				unitObj.GetComponent<Unit> ().MoveToTile ();
+				NetworkServer.Spawn (unitObj);
 			}
 		}
 	}
@@ -25,6 +36,16 @@ public class LevelGen : NetworkBehaviour {
 			return tileRockPrefab;
 		} else {
 			return tileGrassPrefab;
+		}
+	}
+
+	GameObject GetUnitPrefab(int x, int y) {
+		if (x == y) {
+			return unitAxemanPrefab;
+		} else if (x == -y) {
+			return unitSpearmanPrefab;
+		} else {
+			return null;
 		}
 	}
 

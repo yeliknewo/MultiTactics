@@ -23,10 +23,14 @@ public class InputManager : NetworkBehaviour {
 	}
 
 	public Vector2 GetMouseWorldPos() {
-		return Object.FindObjectOfType<CameraController> ().gameObject.GetComponent<Camera> ().ScreenToWorldPoint (Input.mousePosition);
+		return Helpers.GetCamera(Object.FindObjectOfType<CameraController>()).ScreenToWorldPoint (Input.mousePosition);
 	}
 
 	public bool GetMouseClicked() {
 		return Input.GetMouseButton (LEFT_MOUSE_BUTTON);
+	}
+
+	public bool GetMouseDown() {
+		return Input.GetMouseButtonDown (LEFT_MOUSE_BUTTON);
 	}
 }

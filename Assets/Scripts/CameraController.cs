@@ -6,13 +6,13 @@ public class CameraController : NetworkBehaviour {
 
 	public float scrollSpeed = 10.0f;
 
-	private InputManager input;
+	private NetworkInstanceId inputNetId;
 
 	void Start() {
-		input = Object.FindObjectOfType<InputManager> ();
+		inputNetId = Helpers.GetNetId(Object.FindObjectOfType<InputManager> ().gameObject);
 	}
 
 	void Update () {
-		transform.position = transform.position + (Vector3)input.GetMapScrollVector () * Time.deltaTime * scrollSpeed;
+		transform.position = transform.position + (Vector3)Helpers.GetInputManager(inputNetId).GetMapScrollVector () * Time.deltaTime * scrollSpeed;
 	}
 }
