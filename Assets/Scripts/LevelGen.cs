@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 using System.Collections;
 
 public class LevelGen : NetworkBehaviour {
+	
 	public int minY, maxY, minX, maxX;
 
 	public GameObject tileRockPrefab;

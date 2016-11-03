@@ -3,9 +3,11 @@ using UnityEngine.Networking;
 using System.Collections;
 
 public class Player : NetworkBehaviour {
+	
 	public GameObject levelGenPrefab;
 	public GameObject mainCameraPrefab;
 	public GameObject inputManagerPrefab;
+	public GameObject tileDriverPrefab;
 
 	public override void OnStartLocalPlayer ()
 	{
@@ -14,12 +16,18 @@ public class Player : NetworkBehaviour {
 			CmdSpawnLevelGen ();
 			CmdSpawnInputManager ();
 			CmdSpawnMainCamera ();
+			CmdSpawnTileDriver ();
 		}
 	}
 
 	[Command]
 	void CmdSpawnLevelGen() {
 		NetworkServer.SpawnWithClientAuthority (Instantiate<GameObject> (levelGenPrefab), gameObject);
+	}
+		
+	[Command]
+	void CmdSpawnInputManager() {
+		NetworkServer.Spawn (Instantiate<GameObject> (inputManagerPrefab));
 	}
 
 	[Command]
@@ -28,7 +36,7 @@ public class Player : NetworkBehaviour {
 	}
 
 	[Command]
-	void CmdSpawnInputManager() {
-		NetworkServer.Spawn (Instantiate<GameObject> (inputManagerPrefab));
+	void CmdSpawnTileDriver() {
+		NetworkServer.SpawnWithClientAuthority (Instantiate<GameObject> (tileDriverPrefab), gameObject);
 	}
 }
