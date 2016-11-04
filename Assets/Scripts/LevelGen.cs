@@ -2,6 +2,7 @@
 using UnityEngine.Networking;
 using System.Collections;
 
+[RequireComponent(typeof(StartClientListener))]
 public class LevelGen : NetworkBehaviour {
 	
 	public int minY, maxY, minX, maxX;
@@ -11,23 +12,49 @@ public class LevelGen : NetworkBehaviour {
 	public GameObject unitAxemanPrefab;
 	public GameObject unitSpearmanPrefab;
 
+	private int tilesToReady = 0;
+
 	[Command]
 	void CmdGenerateLevel() {
 		for (int y = minY; y < maxY; y++) {
 			for (int x = minX; x < maxX; x++) {
 				GameObject tileObj = Instantiate<GameObject> (GetTilePrefab (x, y));
-				tileObj.transform.position = new Vector2 (x, y);
+				Helpers.GetTile (tileObj).SetXY (x, y);
+				Helpers.GetStartClientCallback(tileObj).SetCallbackNetId (netId);
+				tilesToReady += 1;
 				NetworkServer.Spawn (tileObj);
-
-				GameObject unitPrefab = GetUnitPrefab (x, y);
-				if (unitPrefab == null) {
-					continue;
-				}
-				GameObject unitObj = Instantiate<GameObject> (unitPrefab);
-				unitObj.GetComponent<Unit> ().SetTileObj (tileObj);
-				unitObj.GetComponent<Unit> ().MoveToTile ();
-				NetworkServer.Spawn (unitObj);
 			}
+		}
+	}
+
+	[Command]
+	void CmdFinishGenLevel() {
+		StartClientListener listener = Helpers.ValidateNotNull (GetComponent<StartClientListener> ());
+		NetworkInstanceId tileNetId = listener.GetNextReady ();
+		while (Helpers.ValidateNetId (tileNetId, log1: false, log2: false) != NetworkInstanceId.Invalid) {
+			this.tilesToReady -= 1;
+			Tile tile = Helpers.GetTile (tileNetId);
+			int x = tile.GetX ();
+			int y = tile.GetY ();
+
+			GameObject unitPrefab = GetUnitPrefab (x, y);
+			if (unitPrefab == null) {
+				tileNetId = listener.GetNextReady ();
+				continue;
+			}
+			GameObject unitObj = Instantiate<GameObject> (unitPrefab);
+			Unit unit = Helpers.GetUnit (unitObj);
+			unit.SetTileNetId(tileNetId);
+			unit.MoveToTile ();
+			NetworkServer.Spawn (unitObj);
+			tileNetId = listener.GetNextReady ();
+		}
+	}
+
+	void Update() {
+		if (tilesToReady > 0) {
+			CmdFinishGenLevel ();
+			Debug.Log (tilesToReady);
 		}
 	}
 
@@ -51,6 +78,7 @@ public class LevelGen : NetworkBehaviour {
 
 	public override void OnStartAuthority ()
 	{
+		Debug.Log (NetworkServer.active);
 		base.OnStartAuthority ();
 		CmdGenerateLevel ();
 	}

@@ -50,6 +50,8 @@
      <Compile Include="Assets\Scripts\InputManager.cs" />
      <Compile Include="Assets\Scripts\LevelGen.cs" />
      <Compile Include="Assets\Scripts\Player.cs" />
+     <Compile Include="Assets\Scripts\StartClientCallback.cs" />
+     <Compile Include="Assets\Scripts\StartClientListener.cs" />
      <Compile Include="Assets\Scripts\Tile.cs" />
      <Compile Include="Assets\Scripts\TileDriver.cs" />
      <Compile Include="Assets\Scripts\Unit.cs" />
