@@ -19,9 +19,6 @@ public class TileDriver : NetworkBehaviour {
 	}
 		
 	void HandleInput() {
-		foreach (NetworkInstanceId id in NetworkServer.objects.Keys) {
-			//Debug.Log (id);
-		}
 		InputManager input = Helpers.GetInputManager (inputNetId);
 		if (input.GetMouseDown ()) {
 			Tile tile = GetTile(input.GetMouseWorldPos ());

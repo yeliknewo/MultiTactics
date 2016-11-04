@@ -1,18 +1,10 @@
 fileFormatVersion: 2
 guid: 37ed969e776fe264fb69c4aee15abae7
-timeCreated: 1478205018
+timeCreated: 1478142620
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences:
-  - levelGenPrefab: {fileID: 1000010605492478, guid: 5da3cf1844767014fad87d0a07201cb3,
-      type: 2}
-  - mainCameraPrefab: {fileID: 1000010036266082, guid: 77825e066dcb84845aa73d11cb004957,
-      type: 2}
-  - inputManagerPrefab: {fileID: 1000010553096140, guid: 0b10b384c8dd5e7489cb1e5f02db3c43,
-      type: 2}
-  - tileDriverPrefab: {fileID: 1000011701545634, guid: 3e6dd34a1bdd17e4d8963f847384da53,
-      type: 2}
+  defaultReferences: []
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
