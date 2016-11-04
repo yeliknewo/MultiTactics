@@ -15,12 +15,11 @@ public class Option<T>
 
 	private Option()
 	{
-		this.value = default(T);
 		this.some = false;
 	}
 
 	private Option(T newValue) {
-		if (newValue.Equals(default(T))) {
+		if (newValue.Equals(null)) {
 			throw new Exception ("Passed Null Value to Option");
 		}
 		this.value = newValue;
@@ -40,6 +39,14 @@ public class Option<T>
 			return this.value;
 		} else {
 			throw new Exception ("Unwrapped a None");
+		}
+	}
+
+	public Is<T> ToIs() {
+		if (this.IsSome ()) {
+			return Is<T>.Wrap (this.value);
+		} else {
+			throw new Exception ("ToIs value was none");
 		}
 	}
 }

@@ -4,8 +4,23 @@ using System.Collections;
 
 public class Rusty
 {
+	public static Option<InputManager> GetInputManager(Is<NetworkInstanceId> isInputNetId, bool log1 = true, bool log2 = true, bool log3 = true, bool log4 = true) {
+
+	}
+
+	public static Option<InputManager> GetInputManager(Is<GameObject> isObj, bool log1 = true) {
+		return ValidateNotNull (isObj.Get ().GetComponent<InputManager> ());
+	}
+
 	public static Option<InputManager> GetInputManager(NetworkInstanceId inputNetId, bool log1 = true, bool log2 = true, bool log3 = true, bool log4 = true) {
-		return InternalValidateNotNull(InternalValidateNotNull(ClientScene.FindLocalObject (InternalValidateNetId(inputNetId, log1, log2)), log3).GetComponent<InputManager> (), log4);
+		Option<NetworkInstanceId> inputNetIdOpt = InternalValidateNetId (inputNetId, log1, log2);
+		if (inputNetIdOpt.IsSome ()) {
+			Option<GameObject> inputObjOpt = InternalValidateNotNull (ClientScene.FindLocalObject (inputNetIdOpt.Unwrap ()), log3);
+			if (inputObjOpt.IsSome ()) {
+				return GetInputManager (inputObjOpt.ToIs (), log4);
+			}
+		}
+		return Option<InputManager>.None ();
 	}
 
 	public static Option<Unit> GetUnit(NetworkInstanceId unitNetId, bool log1 = true, bool log2 = true, bool log3 = true, bool log4 = true) {
@@ -43,7 +58,7 @@ public class Rusty
 	public static Option<NetworkInstanceId> GetNetId(GameObject obj, bool log1 = true, bool log2 = true, bool log3 = true, bool log4 = true) {
 		Option<GameObject> objOpt = InternalValidateNotNull (obj, log1);
 		if (objOpt.IsSome ()) {
-			Option<NetworkIdentity> networkIdentityOpt = InternalValidateNotNull (objOpt.Unwrap ().GetComponent<NetworkIdentity> (), log2);
+			Option<NetworkIdentity> networkIdentityOpt = GetNetworkIndentity (objOpt.Unwrap (), log2);
 			if (networkIdentityOpt.IsSome ()) {
 				return InternalValidateNetId (networkIdentityOpt.Unwrap ().netId, log3, log4);
 			}
@@ -54,7 +69,7 @@ public class Rusty
 	public static Option<NetworkIdentity> GetNetworkIndentity(GameObject obj, bool log1 = true) {
 		Option<GameObject> objOpt = InternalValidateNotNull(obj, log1);
 		if (objOpt.IsSome ()) {
-			return InternalValidateNotNull (objOpt.Unwrap ().GetComponent<NetworkIdentity> ());
+			return InternalValidateNotNull (objOpt.Unwrap ().GetComponent<NetworkIdentity> (), log1);
 		}
 		return Option<NetworkIdentity>.None ();
 	}
