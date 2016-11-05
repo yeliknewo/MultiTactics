@@ -10,9 +10,9 @@ namespace Rusty {
 				if (logObjNull) {
 					Debug.LogError ("Obj is null");
 				}
-				return Option<T>.None();
+				return Option<T>.InternalNone();
 			}
-			return Option<T>.Some(obj);
+			return Option<T>.InternalSome(obj);
 		}
 
 		public static Option<NetworkInstanceId> NetIdL(NetworkInstanceId netId, bool logInvalid, bool logEmpty) {
@@ -20,15 +20,19 @@ namespace Rusty {
 				if (logInvalid) {
 					Debug.LogError ("NetId is Invalid");
 				}
-				return Option<NetworkInstanceId>.None();
+				return Option<NetworkInstanceId>.InternalNone();
 			}
 			if (netId.IsEmpty ()) {
 				if (logEmpty) {
 					Debug.LogError ("NetId is Empty");
 				}
-				return Option<NetworkInstanceId>.None();
+				return Option<NetworkInstanceId>.InternalNone();
 			}
-			return Option<NetworkInstanceId>.Some(netId);
+			return Option<NetworkInstanceId>.InternalSome(netId);
+		}
+
+		public static Option<T> NoneL<T>() {
+			return Option<T>.InternalNone ();
 		}
 
 		public static Option<T> NotNull<T>(T obj, bool logObjNull = true) {
@@ -38,17 +42,25 @@ namespace Rusty {
 		public static Option<NetworkInstanceId> NetId(NetworkInstanceId netId, bool logInvalid = true, bool logEmpty = true) {
 			return NetIdL (netId, logInvalid, logEmpty);
 		}
+
+		public static Option<T> None<T>() {
+			return Option<T>.InternalNone ();
+		}
+
+		public static Vital<T> ToVital<T>(T isT) {
+			return Vital<T>.InternalWrap (isT);
+		}
 	}
 
-	public class Is<T>
+	public class Vital<T>
 	{
 		private T value;
 
-		internal static Is<T> Wrap(T newValue) {
-			return new Is<T> (newValue);
+		internal static Vital<T> InternalWrap(T newValue) {
+			return new Vital<T> (newValue);
 		}
 
-		private Is (T newValue)
+		private Vital (T newValue)
 		{
 			if (newValue == null) {
 				throw new Exception ("Is was passed null value");
@@ -61,7 +73,7 @@ namespace Rusty {
 		}
 
 		public Option<T> ToOpt() {
-			return Option<T>.Some (value);
+			return Option<T>.InternalSome (value);
 		}
 	}
 
@@ -70,11 +82,11 @@ namespace Rusty {
 		private T value;
 		private bool some;
 
-		internal static Option<T> None() {
+		internal static Option<T> InternalNone() {
 			return new Option<T> ();
 		}
 
-		internal static Option<T> Some(T newValue) {
+		internal static Option<T> InternalSome(T newValue) {
 			return new Option<T> (newValue);
 		}
 
@@ -107,9 +119,9 @@ namespace Rusty {
 			}
 		}
 
-		public Is<T> ToIs() {
+		public Vital<T> ToVital() {
 			if (this.IsSome ()) {
-				return Is<T>.Wrap (this.value);
+				return Vital<T>.InternalWrap (this.value);
 			} else {
 				throw new Exception ("ToIs value was none");
 			}

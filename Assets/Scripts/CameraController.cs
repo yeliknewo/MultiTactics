@@ -5,14 +5,15 @@ using Rusty;
 
 public class CameraController : NetworkBehaviour {
 
-	private Is<float> isScrollSpeed;
-	private Is<NetworkInstanceId> isInputNetId;
+	private Vital<float> vitScrollSpeed;
+	private Vital<NetworkInstanceId> vitInputNetId;
 
 	void Start() {
-		isInputNetId = Is<NetworkInstanceId>.Wrap(Helpers.GetNetId(Object.FindObjectOfType<InputManager> ().gameObject));
+		vitScrollSpeed = Rustify.NotNull (10.0f).ToVital ();
+		vitInputNetId = RNetId.Get(RComponent.Find<InputManager>()).ToVital();
 	}
 
 	void Update () {
-		transform.position = transform.position + (Vector3)Helpers.GetInputManager(isInputNetId.Get()).GetMapScrollVector () * Time.deltaTime * isScrollSpeed.Get();
+		transform.position = transform.position + (Vector3)RComponent.Get<InputManager>(vitInputNetId).Unwrap().GetMapScrollVector () * Time.deltaTime * vitScrollSpeed.Get();
 	}
 }

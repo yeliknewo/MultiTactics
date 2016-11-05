@@ -1,84 +1,87 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using Rusty;
 
 [RequireComponent(typeof(StartClientListener))]
 public class LevelGen : NetworkBehaviour {
 	
-	public int minY, maxY, minX, maxX;
+	public Vital<int> vitMinY, vitMaxY, vitMinX, vitMaxX;
 
 	public GameObject tileRockPrefab;
 	public GameObject tileGrassPrefab;
 	public GameObject unitAxemanPrefab;
 	public GameObject unitSpearmanPrefab;
 
-	private int tilesToReady = 0;
+	private Vital<int> vitTilesToReady = Rustify.ToVital(0);
 
 	[Command]
 	void CmdGenerateLevel() {
-		for (int y = minY; y < maxY; y++) {
-			for (int x = minX; x < maxX; x++) {
-				GameObject tileObj = Instantiate<GameObject> (GetTilePrefab (x, y));
-				Helpers.GetTile (tileObj).SetXY (x, y);
-				Helpers.GetStartClientCallback(tileObj).SetCallbackNetId (netId);
-				tilesToReady += 1;
-				NetworkServer.Spawn (tileObj);
+		for (Vital<int> vitY = vitMinY; vitY.Get() < vitMaxY.Get(); vitY = Rustify.ToVital(vitY.Get() + 1)) {
+			for (Vital<int> vitX = vitMinX; vitX.Get() < vitMaxX.Get(); vitX = Rustify.ToVital(vitX.Get() + 1)) {
+				Option<GameObject> optTileObjPrefab = GetTilePrefab (vitX, vitY);
+				if (optTileObjPrefab.IsSome ()) {
+					Vital<GameObject> vitTileObj = RGameObject.Instantiate(optTileObjPrefab.ToVital());
+					RComponent.Get<Tile>(vitTileObj).Unwrap().SetXY (vitX, vitY);
+					RComponent.Get<StartClientCallback>(vitTileObj).Unwrap().SetCallbackNetId (RNetId.Get(Rustify.NotNull(this)).ToVital());
+					vitTilesToReady = Rustify.ToVital(vitTilesToReady.Get() + 1);
+					NetworkServer.Spawn (vitTileObj.Get());
+				}
 			}
 		}
 	}
 
 	[Command]
 	void CmdFinishGenLevel() {
-		StartClientListener listener = Helpers.ValidateNotNull (GetComponent<StartClientListener> ());
-		NetworkInstanceId tileNetId = listener.GetNextReady ();
-		while (Helpers.ValidateNetId (tileNetId, log1: false, log2: false) != NetworkInstanceId.Invalid) {
-			this.tilesToReady -= 1;
-			Tile tile = Helpers.GetTile (tileNetId);
-			int x = tile.GetX ();
-			int y = tile.GetY ();
+		Vital<StartClientListener> vitListener = RComponent.Get<StartClientListener>(Rustify.NotNull(gameObject)).ToVital();
+		Option<NetworkInstanceId> optTileNetId = vitListener.Get().GetNextReady ();
+		while (optTileNetId.IsSome()) {
+			Vital<NetworkInstanceId> vitTileNetId = optTileNetId.ToVital (); //safe
 
-			GameObject unitPrefab = GetUnitPrefab (x, y);
-			if (unitPrefab == null) {
-				tileNetId = listener.GetNextReady ();
-				continue;
+			this.vitTilesToReady = Rustify.ToVital(vitTilesToReady.Get() - 1);
+			Vital<Tile> vitTile = RComponent.Get<Tile>(vitTileNetId).ToVital ();
+			Vital<int> vitX = vitTile.Get().GetX ();
+			Vital<int> vitY = vitTile.Get().GetY ();
+
+			Option<GameObject> optUnitPrefab = GetUnitPrefab (vitX, vitY);
+			if (optUnitPrefab.IsSome()) {
+				Vital<GameObject> vitUnitObj = RGameObject.Instantiate (optUnitPrefab.ToVital ()); //safe
+				Vital<Unit> vitUnit = RComponent.Get<Unit> (vitUnitObj).ToVital();
+				vitUnit.Get ().SetTileNetId (vitTileNetId);
+				vitUnit.Get ().MoveToTile ();
+				optTileNetId = vitListener.Get ().GetNextReady();
 			}
-			GameObject unitObj = Instantiate<GameObject> (unitPrefab);
-			Unit unit = Helpers.GetUnit (unitObj);
-			unit.SetTileNetId(tileNetId);
-			unit.MoveToTile ();
-			NetworkServer.Spawn (unitObj);
-			tileNetId = listener.GetNextReady ();
+			optTileNetId = vitListener.Get ().GetNextReady ();
+			continue;
 		}
 	}
 
 	void Update() {
-		if (tilesToReady > 0) {
+		if (vitTilesToReady.Get() > 0) {
 			CmdFinishGenLevel ();
-			Debug.Log (tilesToReady);
 		}
 	}
 
-	GameObject GetTilePrefab(int x, int y) {
-		if (x == y) {
-			return tileRockPrefab;
+	Option<GameObject> GetTilePrefab(Vital<int> vitX, Vital<int> vitY) {
+		if (vitX == vitY) {
+			return Rustify.NotNull(tileRockPrefab);
 		} else {
-			return tileGrassPrefab;
+			return Rustify.NotNull(tileGrassPrefab);
 		}
 	}
 
-	GameObject GetUnitPrefab(int x, int y) {
-		if (x == y) {
-			return unitAxemanPrefab;
-		} else if (x == -y) {
-			return unitSpearmanPrefab;
+	Option<GameObject> GetUnitPrefab(Vital<int> vitX, Vital<int> vitY) {
+		if (vitX == vitY) {
+			return Rustify.NotNull(unitAxemanPrefab);
+		} else if (vitX.Get() == -vitY.Get()) {
+			return Rustify.NotNull(unitSpearmanPrefab);
 		} else {
-			return null;
+			return Rustify.None<GameObject> ();
 		}
 	}
 
 	public override void OnStartAuthority ()
 	{
-		Debug.Log (NetworkServer.active);
 		base.OnStartAuthority ();
 		CmdGenerateLevel ();
 	}

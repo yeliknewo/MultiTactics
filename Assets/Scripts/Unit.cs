@@ -1,34 +1,57 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using Rusty;
 
 public class Unit : NetworkBehaviour {
 
 	[SyncVar]
-	private NetworkInstanceId tileNetId = NetworkInstanceId.Invalid;
+	private NetworkInstanceId _tileNetId = NetworkInstanceId.Invalid;
+	private Option<NetworkInstanceId> optTileNetId {
+		set {
+			if (value.IsSome ()) {
+				_tileNetId = value.Unwrap ();
+			} else {
+				_tileNetId = NetworkInstanceId.Invalid;
+			}
 
-	public void MoveToTile() {
-		MoveToTile (Helpers.GetTile(tileNetId));
-	}
-
-	public void MoveToTile(Tile tile) {
-		transform.position = Helpers.ValidateNotNull(tile).transform.position + Vector3.back;
-	}
-
-	void ClearOldTile() {
-		Tile tile = Helpers.GetTile (this.tileNetId, log1: false, log2: false, log3: false, log4: false);
-		if(tile != null) {
-			tile.SetUnitNetId (NetworkInstanceId.Invalid);
+		}
+		get { 
+			return Rustify.NetId (_tileNetId);
 		}
 	}
 
-	public void SetTileNetId(NetworkInstanceId newTileNetId) {
-		ClearOldTile ();
-		this.tileNetId = newTileNetId;
-		Helpers.GetTile (this.tileNetId).SetUnitNetId (Helpers.GetNetId (gameObject));
+	public void MoveToTile() {
+		MoveToTile (RComponent.Get<Tile> (optTileNetId).ToVital());
 	}
 
-	public NetworkInstanceId GetTileNetId() {
-		return tileNetId;
+	public void MoveToTile(Vital<Tile> vitTile) {
+		transform.position = vitTile.Get ().transform.position + Vector3.back;
+	}
+
+	void ClearOldTile() {
+		if (optTileNetId.IsSome ()) {
+			Option<Tile> optTile = RComponent.Get<Tile> (optTileNetId.ToVital());
+			if (optTile.IsSome ()) {
+				optTile.Unwrap ().SetUnitNetId (Rustify.None<NetworkInstanceId> ());
+			}
+		}
+	}
+
+	void SetNewTile() {
+		Option<Tile> optTile = RComponent.Get<Tile> (optTileNetId);
+		if (optTile.IsSome ()) {
+			optTile.Unwrap ().SetUnitNetId (Rustify.NetId (netId));
+		}
+	}
+
+	public void SetTileNetId(Vital<NetworkInstanceId> newVitTileNetId) {
+		ClearOldTile ();
+		this.optTileNetId = newVitTileNetId.ToOpt();
+		SetNewTile ();
+	}
+
+	public Option<NetworkInstanceId> GetTileNetId() {
+		return optTileNetId;
 	}
 }

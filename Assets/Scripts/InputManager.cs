@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using Rusty;
 
 public class InputManager : NetworkBehaviour {
 	
@@ -10,27 +11,27 @@ public class InputManager : NetworkBehaviour {
 	private const int RIGHT_MOUSE_BUTTON = 1;
 	private const int MIDDLE_MOUSE_BUTTON = 2;
 
-	public Vector2 GetMapScrollVector() {
+	public Vital<Vector2> GetMapScrollVector() {
 		return new Vector2 (GetMapScrollX (), GetMapScrollY ());
 	}
 
-	public float GetMapScrollX() {
+	public Vital<float> GetMapScrollX() {
 		return Input.GetAxis (MAP_SCROLL_X_AXIS);
 	}
 
-	public float GetMapScrollY() {
+	public Vital<float> GetMapScrollY() {
 		return Input.GetAxis (MAP_SCROLL_Y_AXIS);
 	}
 
-	public Vector2 GetMouseWorldPos() {
-		return Helpers.GetCamera(Object.FindObjectOfType<CameraController>()).ScreenToWorldPoint (Input.mousePosition);
+	public Option<Vector2> GetMouseWorldPos() {
+		return RComponent.Get<Camera>(RGameObject.Get(RComponent.Find<CameraController>())).Unwrap().ScreenToWorldPoint (Input.mousePosition);
 	}
 
-	public bool GetMouseClicked() {
+	public Vital<bool> GetMouseClicked() {
 		return Input.GetMouseButton (LEFT_MOUSE_BUTTON);
 	}
 
-	public bool GetMouseDown() {
+	public Vital<bool> GetMouseDown() {
 		return Input.GetMouseButtonDown (LEFT_MOUSE_BUTTON);
 	}
 }
