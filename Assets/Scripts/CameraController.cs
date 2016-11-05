@@ -1,18 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using Rusty;
 
 public class CameraController : NetworkBehaviour {
 
-	public float scrollSpeed = 10.0f;
-
-	private NetworkInstanceId inputNetId;
+	private Is<float> isScrollSpeed;
+	private Is<NetworkInstanceId> isInputNetId;
 
 	void Start() {
-		inputNetId = Helpers.GetNetId(Object.FindObjectOfType<InputManager> ().gameObject);
+		isInputNetId = Is<NetworkInstanceId>.Wrap(Helpers.GetNetId(Object.FindObjectOfType<InputManager> ().gameObject));
 	}
 
 	void Update () {
-		transform.position = transform.position + (Vector3)Helpers.GetInputManager(inputNetId).GetMapScrollVector () * Time.deltaTime * scrollSpeed;
+		transform.position = transform.position + (Vector3)Helpers.GetInputManager(isInputNetId.Get()).GetMapScrollVector () * Time.deltaTime * isScrollSpeed.Get();
 	}
 }
